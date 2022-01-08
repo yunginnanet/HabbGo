@@ -1,28 +1,27 @@
 package handlers
 
 import (
-	"github.com/jtieri/HabbGo/game/player"
 	"github.com/jtieri/HabbGo/protocol/composers"
-	"github.com/jtieri/HabbGo/protocol/packets"
+	"github.com/jtieri/HabbGo/models"
 )
 
-func GetInfo(player *player.Player, packet *packets.IncomingPacket) {
-	player.Session.Send(composers.ComposeUserObj(player))
+func GetInfo(player models.Player, packet models.IncomingPacket) {
+	player.Session().Send(composers.ComposeUserObj(player))
 }
 
-func GetCredits(player *player.Player, packet *packets.IncomingPacket) {
-	player.Session.Send(composers.ComposeCreditBalance(player.Details.Credits))
+func GetCredits(player models.Player, packet models.IncomingPacket) {
+	player.Session().Send(composers.ComposeCreditBalance(player.Details().Credits()))
 }
 
-func GetAvailableBadges(player *player.Player, packet *packets.IncomingPacket) {
-	player.Session.Send(composers.ComposeAvailableBadges(player))
+func GetAvailableBadges(player models.Player, packet models.IncomingPacket) {
+	player.Session().Send(composers.ComposeAvailableBadges(player))
 }
 
-func GetSoundSetting(player *player.Player, packet *packets.IncomingPacket) {
-	player.Session.Send(composers.ComposeSoundSetting(player.Details.SoundEnabled))
+func GetSoundSetting(player models.Player, packet models.IncomingPacket) {
+	player.Session().Send(composers.ComposeSoundSetting(player.Details().SoundEnabled()))
 }
 
-func TestLatency(player *player.Player, packet *packets.IncomingPacket) {
+func TestLatency(player models.Player, packet models.IncomingPacket) {
 	l := packet.ReadInt()
-	player.Session.Send(composers.ComposeLatency(l))
+	player.Session().Send(composers.ComposeLatency(l))
 }

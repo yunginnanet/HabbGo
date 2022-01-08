@@ -1,8 +1,14 @@
 package player
 
-import "fmt"
+import (
+	"fmt"
 
-func Login(player *Player) {
+	"github.com/rs/zerolog/log"
+
+	"github.com/jtieri/HabbGo/models"
+)
+
+func Login(player models.Player) {
 	// Set player logged in & ping ready for latency test
 	// Possibly add player to a list of online players? Health endpoint with server stats?
 	// Save current time to Conn for players last online time
@@ -17,13 +23,13 @@ func Login(player *Player) {
 	// Check if player gets club gift & update club status
 }
 
-func (p *Player) Register(username, figure, gender, email, birthday, createdAt, password string, salt []byte) {
+func register(username, figure, gender, email, birthday, createdAt, password string, salt []byte) {
 	err := Register(username, figure, gender, email, birthday, createdAt, password, salt)
 	if err != nil {
-		p.LogErr(err)
+		log.Error().Err(err)
 	}
 }
 
 func (p *Player) LogErr(err error) {
-	fmt.Printf("[%d-%s] Player encountered error: %e \n", p.Details.Id, p.Details.Username, err)
+	fmt.Printf("[%d-%s] Player encountered error: %e \n", p.Details().ID(), p.Details().Username(), err)
 }

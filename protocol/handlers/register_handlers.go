@@ -8,9 +8,10 @@ import (
 	"github.com/jtieri/HabbGo/crypto"
 	"github.com/jtieri/HabbGo/date"
 	player2 "github.com/jtieri/HabbGo/game/player"
+	"github.com/jtieri/HabbGo/models"
 	composers2 "github.com/jtieri/HabbGo/protocol/composers"
-	"github.com/jtieri/HabbGo/protocol/packets"
 	"github.com/jtieri/HabbGo/text"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -27,36 +28,36 @@ const (
 	PASSWORDSIMILARTONAME = 5
 )
 
-func GETAVAILABLESETS(p *player2.Player, packet *packets.IncomingPacket) {
-	p.Session.Send(composers2.ComposeAvailableSets())
+func GETAVAILABLESETS(p models.Player, packet models.IncomingPacket) {
+	p.Session().Send(composers2.ComposeAvailableSets())
 }
 
-func GDATE(p *player2.Player, packet *packets.IncomingPacket) {
-	p.Session.Send(composers2.DATE(date.GetCurrentDate()))
+func GDATE(p models.Player, packet models.IncomingPacket) {
+	p.Session().Send(composers2.DATE(date.GetCurrentDate()))
 }
 
-func APPROVENAME(p *player2.Player, packet *packets.IncomingPacket) {
+func APPROVENAME(p models.Player, packet models.IncomingPacket) {
 	name := text.Filter(packet.ReadString())
-	p.Session.Send(composers2.APPROVENAMEREPLY(checkName(p, name)))
+	p.Session().Send(composers2.APPROVENAMEREPLY(checkName(p, name)))
 }
 
-func APPROVE_PASSWORD(p *player2.Player, packet *packets.IncomingPacket) {
+func APPROVE_PASSWORD(p models.Player, packet models.IncomingPacket) {
 	username := packet.ReadString()
 	password := packet.ReadString()
-	p.Session.Send(composers2.PASSWORD_APPROVED(checkPassword(p, username, password)))
+	p.Session().Send(composers2.PASSWORD_APPROVED(checkPassword(p, username, password)))
 }
 
-func APPROVEEMAIL(p *player2.Player, packet *packets.IncomingPacket) {
+func APPROVEEMAIL(p models.Player, packet models.IncomingPacket) {
 	email := packet.ReadString()
 
 	if _, err := mail.ParseAddress(email); err != nil {
-		p.Session.Send(composers2.EMAIL_REJECTED())
+		p.Session().Send(composers2.EMAIL_REJECTED())
 	} else {
-		p.Session.Send(composers2.EMAIL_APPROVED())
+		p.Session().Send(composers2.EMAIL_APPROVED())
 	}
 }
 
-func REGISTER(p *player2.Player, packet *packets.IncomingPacket) {
+func REGISTER(p models.Player, packet models.IncomingPacket) {
 	packet.ReadB64()
 	username := packet.ReadString()
 
@@ -97,7 +98,11 @@ func REGISTER(p *player2.Player, packet *packets.IncomingPacket) {
 		}
 	}
 
-	p.Register(username, figure, gender, email, bday, createdAt, hPsswrd, randSalt)
+	log.Fatal().Str("caller", username).Interface("hash", hPsswrd).
+		Str("time", createdAt).Str("figure", figure).Str("gender", gender).
+		Str("email", email).Msg("registration not implemented yet")
+
+	// register(username, figure, gender, email, bday, createdAt, hPsswrd, randSalt)
 	/*
 		2021/09/16 22:28:48 [127.0.0.1] [UNK] [@k - 43]: @B@Itreebeard@D@Y1000118001270012900121001@E@AM@F@@@G@Mboob@none.com@H@J27.01.1995@JA@A@@I@@C@Jtreebeard1
 		2021/09/16 22:29:04 [127.0.0.1] [INCOMING] [TRY_LOGIN - @D|4]: @Itreebeard@Jtreebeard1
@@ -105,7 +110,7 @@ func REGISTER(p *player2.Player, packet *packets.IncomingPacket) {
 }
 
 // checkName takes in a proposed username and returns an integer representing the approval status of the given name
-func checkName(p *player2.Player, username string) int {
+func checkName(p models.Player, username string) int {
 	switch {
 	case player2.PlayerExists(p, username):
 		return NAMEALREADYRESERVED
@@ -123,7 +128,7 @@ func checkName(p *player2.Player, username string) int {
 }
 
 // checkPassword takes in a proposed password and returns an integer representing the approval status of the given password
-func checkPassword(p *player2.Player, username, password string) int {
+func checkPassword(p models.Player, username, password string) int {
 	switch {
 	case len(password) < 6:
 		return PASSWORDTOOSHORT // too short

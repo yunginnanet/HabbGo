@@ -3,13 +3,15 @@ package server
 import (
 	"bufio"
 	"bytes"
-	"log"
 	"net"
 	"strings"
 	"sync"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/jtieri/HabbGo/game/player"
 	logger "github.com/jtieri/HabbGo/log"
+	"github.com/jtieri/HabbGo/models"
 	"github.com/jtieri/HabbGo/protocol/composers"
 	"github.com/jtieri/HabbGo/protocol/encoding"
 	packets2 "github.com/jtieri/HabbGo/protocol/packets"
@@ -66,7 +68,7 @@ func (session *Session) Listen() {
 		rawPacket := make([]byte, length)
 		bytesRead, err := reader.Read(rawPacket)
 		if length == 0 || err != nil || bytesRead < length {
-			log.Println("Junk HabboPacket received.") // TODO handle logging junk packets
+			log.Warn().Msg("Junk HabboPacket received.") // TODO handle logging junk packets
 			continue
 		}
 
@@ -84,51 +86,51 @@ func (session *Session) Listen() {
 }
 
 // Send finalizes an outgoing HabboPacket with 0x01 and then attempts to write and flush the HabboPacket to a Session's buffer.
-func (session *Session) Send(packet *packets2.OutgoingPacket) {
+func (session *Session) Send(packet models.OutgoingPacket) {
 	packet.Finish()
 	session.buffer.mux.Lock()
 	defer session.buffer.mux.Unlock()
 
-	_, err := session.buffer.buff.Write(packet.Payload.Bytes())
+	_, err := session.buffer.buff.Write(packet.Payload().Bytes())
 	if err != nil {
-		log.Printf("Error sending HabboPacket %v to session %v \n %v ", packet.Header, session.Address(), err)
+		log.Printf("Error sending HabboPacket %v to session %v \n %v ", packet.Header(), session.Address(), err)
 	}
 
 	err = session.buffer.buff.Flush()
 	if err != nil {
-		log.Printf("Error sending HabboPacket %v to session %v \n %v ", packet.Header, session.Address(), err)
+		log.Printf("Error sending HabboPacket %v to session %v \n %v ", packet.Header(), session.Address(), err)
 	}
 
 	logger.LogOutgoingPacket(session.Address(), packet)
 }
 
 // Send finalizes an outgoing HabboPacket with 0x01 and then attempts to write the HabboPacket to a Session's buffer.
-func (session *Session) Queue(packet *packets2.OutgoingPacket) {
+func (session *Session) Queue(packet models.OutgoingPacket) {
 	packet.Finish()
 	session.buffer.mux.Lock()
 	defer session.buffer.mux.Unlock()
 
-	_, err := session.buffer.buff.Write(packet.Payload.Bytes())
+	_, err := session.buffer.buff.Write(packet.Payload().Bytes())
 	if err != nil {
-		log.Printf("Error sending HabboPacket %v to session %v \n %v ", packet.Header, session.Address(), err)
+		log.Printf("Error sending HabboPacket %v to session %v \n %v ", packet.Header(), session.Address(), err)
 	}
 }
 
 // Flush Send finalizes an outgoing HabboPacket with 0x01 and then attempts flush the HabboPacket to a Sessions's buffer.
-func (session *Session) Flush(packet *packets2.OutgoingPacket) {
+func (session *Session) Flush(packet models.OutgoingPacket) {
 	session.buffer.mux.Lock()
 	defer session.buffer.mux.Unlock()
 
 	err := session.buffer.buff.Flush()
 	if err != nil {
-		log.Printf("Error sending HabboPacket %v to session %v \n %v ", packet.Header, session.Address(), err)
+		log.Printf("Error sending HabboPacket %v to session %v \n %v ", packet.Header(), session.Address(), err)
 	}
 
 	logger.LogOutgoingPacket(session.Address(), packet)
 }
 
-func (session *Session) GetPacketHandler(headerID player.Packet) (player.Handler, bool) {
-	return session.router.GetPacketHandler(headerID)
+func (session *Session) GetPacketHandler(headerID models.Packet) (models.Handler, bool) {
+	return session.router.GetPacketHandler(HabboPacket(headerID.Int()))
 }
 
 func (session *Session) Address() string {

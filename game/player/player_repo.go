@@ -1,5 +1,7 @@
 package player
 
+import "github.com/jtieri/HabbGo/models"
+
 func Register(username, figure, gender, email, birthday, createdAt, password string, salt []byte) error {
 	//	stmt, err := app.HabbGo().Database.Prepare(
 	//		"INSERT INTO Players(Username, Figure, Sex, Email, Birthday, CreatedOn, PasswordHash, PasswordSalt) VALUES(?, ?, ?, ?, ?, ?, ?, ?)")
@@ -16,7 +18,7 @@ func Register(username, figure, gender, email, birthday, createdAt, password str
 	return nil
 }
 
-func LoginDB(player *Player, username string, password string) bool {
+func LoginDB(player models.Player, username string, password string) bool {
 	var (
 	// psswrdHash, uname string
 	// psswrdSalt        []byte
@@ -39,7 +41,7 @@ func LoginDB(player *Player, username string, password string) bool {
 	return false
 }
 
-func LoadBadges(player *Player) {
+func LoadBadges(player models.Player) {
 	/*
 		rows, err := app.HabbGo().Database.Query("SELECT P.Badge FROM PlayerBadges P WHERE P.PlayerID = ?", player.Details.Id)
 		if err != nil {
@@ -62,7 +64,7 @@ func LoadBadges(player *Player) {
 	*/
 }
 
-func PlayerExists(p *Player, username string) bool {
+func PlayerExists(p models.Player, username string) bool {
 	/*
 		rows, err := app.HabbGo().Database.Query("SELECT P.ID FROM Players P WHERE P.Username = ?", username)
 		if err != nil {

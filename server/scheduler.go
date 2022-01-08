@@ -1,19 +1,18 @@
 package server
 
 import (
-	"github.com/jtieri/HabbGo/game/player"
 	logger "github.com/jtieri/HabbGo/log"
-	"github.com/jtieri/HabbGo/protocol/packets"
+	"github.com/jtieri/HabbGo/models"
 )
 
-func Handle(p *player.Player, packet *packets.IncomingPacket) {
-	handler, found := p.Session.GetPacketHandler(packet.HeaderID)
+func Handle(p models.Player, packet models.IncomingPacket) {
+	handler, found := p.Session().GetPacketHandler(models.Packet(packet))
 
 	if found {
-		logger.LogIncomingPacket(p.Session.Address(), handler, packet)
+		logger.LogIncomingPacket(p.Session().Address(), handler, packet)
 		handler.Run(p, packet)
 	} else {
-		logger.LogUnknownPacket(p.Session.Address(), packet)
+		logger.LogUnknownPacket(p.Session().Address(), packet)
 	}
 
 }

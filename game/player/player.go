@@ -1,53 +1,97 @@
 package player
 
-import (
-	packets2 "github.com/jtieri/HabbGo/protocol/packets"
-)
+import "github.com/jtieri/HabbGo/models"
 
 type Player struct {
-	Session Session
-	Details *Details
+	session models.Session
+	details models.PlayerDetails
 }
 
+func (p *Player) Session() models.Session {
+	return p.session
+}
+
+func (p *Player) Details() models.PlayerDetails {
+	return p.details
+}
+
+// Details encapsulates a player's details.
 type Details struct {
-	Id           int
-	Username     string
-	Figure       string
-	Sex          string
-	Motto        string
-	ConsoleMotto string
-	Tickets      int
-	PoolFigure   string
-	Film         int
-	Credits      int
-	LastOnline   string
-	Badges       []string
-	CurrentBadge string
-	DisplayBadge bool
-	SoundEnabled int
+	id int
+
+	// TODO: Why is LastOnline a string?
+	username, figure, sex, motto, consoleMotto,
+	poolFigure, lastOnline, currentBadge string
+
+	tickets, film, credits, soundEnabled int
+
+	badges       []string
+	displayBadge bool
 }
 
-type Session interface {
-	Listen()
-	Send(packet *packets2.OutgoingPacket)
-	Queue(packet *packets2.OutgoingPacket)
-	Flush(packet *packets2.OutgoingPacket)
-	Address() string
-	GetPacketHandler(headerID Packet) (Handler, bool)
-	Close()
+func (d Details) ID() int {
+	return d.id
 }
 
-type Packet interface {
-	Int() int
+func (d Details) Username() string {
+	return d.username
 }
 
-type Handler interface {
-	Run(*Player, *packets2.IncomingPacket)
+func (d Details) Figure() string {
+	return d.figure
 }
 
-func New(session Session) *Player {
+func (d Details) Sex() string {
+	return d.sex
+}
+
+func (d Details) Motto() string {
+	return d.motto
+}
+
+func (d Details) ConsoleMotto() string {
+	return d.consoleMotto
+}
+
+func (d Details) PoolFigure() string {
+	return d.poolFigure
+}
+
+func (d Details) LastOnline() string {
+	return d.lastOnline
+}
+
+func (d Details) CurrentBadge() string {
+	return d.currentBadge
+}
+
+func (d Details) Tickets() int {
+	return d.tickets
+}
+
+func (d Details) Film() int {
+	return d.film
+}
+
+func (d Details) Credits() int {
+	return d.credits
+}
+
+func (d Details) SoundEnabled() int {
+	return d.soundEnabled
+}
+
+func (d Details) Badges() []string {
+	return d.badges
+}
+
+func (d Details) DisplayBadge() bool {
+	return d.displayBadge
+}
+
+func New(session models.Session) models.Player {
 	return &Player{
-		Session: session,
-		Details: &Details{},
+		session: session,
+		details: &Details{},
 	}
 }

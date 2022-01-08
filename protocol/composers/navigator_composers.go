@@ -5,14 +5,14 @@ import (
 	"strings"
 
 	navigator2 "github.com/jtieri/HabbGo/game/navigator"
-	"github.com/jtieri/HabbGo/game/player"
 	room2 "github.com/jtieri/HabbGo/game/room"
+	"github.com/jtieri/HabbGo/models"
 	"github.com/jtieri/HabbGo/protocol/packets"
 )
 
-func ComposeNavNodeInfo(player *player.Player, cat *navigator2.Category, nodeMask bool, subcats []*navigator2.Category,
+func ComposeNavNodeInfo(player models.Player, cat *navigator2.Category, nodeMask bool, subcats []*navigator2.Category,
 	rooms []*room2.Room, currentVisitors int, maxVisitors int) *packets.OutgoingPacket {
-	p := packets.NewOutgoing(220) // Base64 Header C\
+	p := packets.NewOutgoing(headerID(220)) // Base64 Header C\
 
 	p.WriteBool(nodeMask) // hideCategory
 	p.WriteInt(cat.Id)
@@ -60,7 +60,7 @@ func ComposeNavNodeInfo(player *player.Player, cat *navigator2.Category, nodeMas
 			p.WriteString(r.Details.Name)
 
 			// TODO check that player is owner of r, that r is showing owner name, or that player has right SEE_ALL_ROOMOWNERS
-			if player.Details.Username == r.Details.Owner_Name {
+			if player.Details().Username() == r.Details.Owner_Name {
 				p.WriteString(r.Details.Owner_Name)
 			} else {
 				p.WriteString("-")

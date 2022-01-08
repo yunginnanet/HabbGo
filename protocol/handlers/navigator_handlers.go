@@ -2,13 +2,12 @@ package handlers
 
 import (
 	"github.com/jtieri/HabbGo/game/navigator"
-	"github.com/jtieri/HabbGo/game/player"
 	room2 "github.com/jtieri/HabbGo/game/room"
 	"github.com/jtieri/HabbGo/protocol/composers"
-	"github.com/jtieri/HabbGo/protocol/packets"
+	"github.com/jtieri/HabbGo/models"
 )
 
-func Navigate(player *player.Player, packet *packets.IncomingPacket) {
+func Navigate(player models.Player, packet models.IncomingPacket) {
 	roomService := room2.RoomService()
 
 	nodeMask := packet.ReadInt() == 1
@@ -47,5 +46,5 @@ func Navigate(player *player.Player, packet *packets.IncomingPacket) {
 
 	// TODO sort rooms by player count before sending NavNodeInfo
 
-	player.Session.Send(composers.ComposeNavNodeInfo(player, category, nodeMask, subCategories, rooms, currentVisitors, maxVisitors))
+	player.Session().Send(composers.ComposeNavNodeInfo(player, category, nodeMask, subCategories, rooms, currentVisitors, maxVisitors))
 }
