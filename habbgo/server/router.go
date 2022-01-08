@@ -1,62 +1,100 @@
 package server
 
 import (
+	"sync"
+
 	"github.com/jtieri/HabbGo/habbgo/game/player"
 	"github.com/jtieri/HabbGo/habbgo/protocol/handlers"
 	"github.com/jtieri/HabbGo/habbgo/protocol/packets"
 )
 
-type Router struct {
-	RegisteredPackets map[int]func(*player.Player, *packets.IncomingPacket)
+type HabboHandler func(*player.Player, *packets.IncomingPacket)
+
+func (h HabboHandler) Run(p *player.Player, pi *packets.IncomingPacket) {
+	h(p, pi)
 }
 
-func (r *Router) GetHandler(headerId int) (func(*player.Player, *packets.IncomingPacket), bool) {
-	h, found := r.RegisteredPackets[headerId]
+type HabboPacket int
+
+func (p HabboPacket) Int() int {
+	return int(p)
+}
+
+type Router struct {
+	RegisteredPackets map[player.Packet]player.Handler
+	mu                sync.RWMutex
+}
+
+func (r *Router) GetPacketHandler(headerID player.Packet) (h player.Handler, found bool) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	h, found = r.RegisteredPackets[headerID]
 	return h, found
 }
 
-func RegisterHandlers() (r *Router) {
-	r = &Router{RegisteredPackets: make(map[int]func(p *player.Player, packet *packets.IncomingPacket))}
-
-	r.RegisterHandshakeHandlers()
-	r.RegisterRegistrationHandlers()
-	r.RegisterPlayerHandlers()
-	r.RegisterNavigatorHandlers()
-
+func newRouter() (r *Router) {
+	r = &Router{RegisteredPackets: make(map[player.Packet]player.Handler)}
+	r.handshakeHandlers()
+	r.registrationHandlers()
+	r.playerHandlers()
+	r.navigatorHandlers()
 	return
 }
 
-func (r *Router) RegisterHandshakeHandlers() {
-	r.RegisteredPackets[206] = handlers.InitCrypto
-	r.RegisteredPackets[202] = handlers.GenerateKey  // older clients
-	r.RegisteredPackets[2002] = handlers.GenerateKey // newer clients
-	r.RegisteredPackets[5] = handlers.VersionCheck   // 1170 - VERSIONCHECK in later clients? v26+? // TODO figure out exact client revisions when these packet headers change
-	r.RegisteredPackets[6] = handlers.UniqueID
-	r.RegisteredPackets[181] = handlers.GetSessionParams
-	r.RegisteredPackets[204] = handlers.SSO
-	r.RegisteredPackets[4] = handlers.TRY_LOGIN
-	r.RegisteredPackets[207] = handlers.SECRETKEY
+func (r *Router) registerHandler(p HabboPacket, h HabboHandler) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.RegisteredPackets[p] = h
 }
 
-func (r *Router) RegisterRegistrationHandlers() {
-	r.RegisteredPackets[9] = handlers.GETAVAILABLESETS
-	r.RegisteredPackets[49] = handlers.GDATE
-	r.RegisteredPackets[42] = handlers.APPROVENAME
-	r.RegisteredPackets[203] = handlers.APPROVE_PASSWORD
-	r.RegisteredPackets[197] = handlers.APPROVEEMAIL
-	r.RegisteredPackets[43] = handlers.REGISTER
+func (r *Router) bulkRegisterHandlers(pairs map[HabboPacket]HabboHandler) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for p, h := range pairs {
+		r.RegisteredPackets[p] = h
+	}
 }
 
-func (r *Router) RegisterPlayerHandlers() {
-	r.RegisteredPackets[7] = handlers.GetInfo
-	r.RegisteredPackets[8] = handlers.GetCredits
-	r.RegisteredPackets[157] = handlers.GetAvailableBadges
-	r.RegisteredPackets[228] = handlers.GetSoundSetting
-	r.RegisteredPackets[315] = handlers.TestLatency
+func (r *Router) handshakeHandlers() {
+	var handshakes = map[HabboPacket]HabboHandler{
+		206: handlers.InitCrypto,
+		202: handlers.GenerateKey,  // older clients
+		2002: handlers.GenerateKey, // newer clients
+		5: handlers.VersionCheck,   // 1170 - VERSIONCHECK in later clients? v26+? // TODO figure out exact client revisions when these HabboPacket headers change
+		6: handlers.UniqueID,
+		181: handlers.GetSessionParams,
+		204: handlers.SSO,
+		4: handlers.TRY_LOGIN,
+		207: handlers.SECRETKEY,
+	}
+	r.bulkRegisterHandlers(handshakes)
 }
 
-func (r *Router) RegisterNavigatorHandlers() {
-	r.RegisteredPackets[150] = handlers.Navigate
+func (r *Router) registrationHandlers() {
+	var registration = map[HabboPacket]HabboHandler{
+		9: handlers.GETAVAILABLESETS,
+		49: handlers.GDATE,
+		42: handlers.APPROVENAME,
+		203: handlers.APPROVE_PASSWORD,
+		197: handlers.APPROVEEMAIL,
+		43: handlers.REGISTER,
+	}
+	r.bulkRegisterHandlers(registration)
+}
+
+func (r *Router) playerHandlers() {
+	var playerHandlers = map[HabboPacket]HabboHandler{
+		7:   handlers.GetInfo,
+		8:   handlers.GetCredits,
+		157: handlers.GetAvailableBadges,
+		228: handlers.GetSoundSetting,
+		315: handlers.TestLatency,
+	}
+	r.bulkRegisterHandlers(playerHandlers)
+}
+
+func (r *Router) navigatorHandlers() {
+	var navigator = map[HabboPacket]HabboHandler{150: handlers.Navigate}
 	// 151: GETUSERFLATCATS
 	// 21: GETFLATINFO
 	// 23: DELETEFLAT
@@ -74,4 +112,5 @@ func (r *Router) RegisterNavigatorHandlers() {
 	// 18: GETFVRF
 	// 19: ADD_FAVORITE_ROOM
 	// 20: DEL_FAVORITE_ROOM
+	r.bulkRegisterHandlers(navigator)
 }

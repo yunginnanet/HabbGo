@@ -3,12 +3,12 @@ package server
 import (
 	"bufio"
 	"bytes"
-	"github.com/jtieri/HabbGo/habbgo/app"
-	logger "github.com/jtieri/HabbGo/habbgo/log"
 	"log"
 	"net"
 	"strings"
 	"sync"
+
+	logger "github.com/jtieri/HabbGo/habbgo/log"
 
 	"github.com/jtieri/HabbGo/habbgo/game/player"
 	"github.com/jtieri/HabbGo/habbgo/protocol/composers"
@@ -36,7 +36,7 @@ func NewSession(conn net.Conn, server *Server) *Session {
 		buffer:     &buffer{mux: sync.Mutex{}, buff: bufio.NewWriter(conn)},
 		active:     true,
 		server:     server,
-		router:     RegisterHandlers(),
+		router:     newRouter(),
 	}
 }
 
@@ -45,7 +45,7 @@ func (session *Session) Listen() {
 	p := player.New(session)
 	reader := bufio.NewReader(session.connection)
 
-	session.Send(composers.ComposeHello()) // Send packet with Base64 header @@ to initialize connection with client.
+	session.Send(composers.ComposeHello()) // Send HabboPacket with Base64 header @@ to initialize connection with client.
 
 	// Listen for incoming packets from a players session
 	for {
@@ -67,11 +67,11 @@ func (session *Session) Listen() {
 		rawPacket := make([]byte, length)
 		bytesRead, err := reader.Read(rawPacket)
 		if length == 0 || err != nil || bytesRead < length {
-			log.Println("Junk packet received.") // TODO handle logging junk packets
+			log.Println("Junk HabboPacket received.") // TODO handle logging junk packets
 			continue
 		}
 
-		// Get Base64 encoded packet header
+		// Get Base64 encoded HabboPacket header
 		payload := bytes.NewBuffer(rawPacket)
 		rawHeader := make([]byte, 2)
 		for i := 0; i < 2; i++ {
@@ -84,7 +84,7 @@ func (session *Session) Listen() {
 	}
 }
 
-// Send finalizes an outgoing packet with 0x01 and then attempts to write and flush the packet to a Session's buffer.
+// Send finalizes an outgoing HabboPacket with 0x01 and then attempts to write and flush the HabboPacket to a Session's buffer.
 func (session *Session) Send(packet *packets.OutgoingPacket) {
 	packet.Finish()
 	session.buffer.mux.Lock()
@@ -92,20 +92,18 @@ func (session *Session) Send(packet *packets.OutgoingPacket) {
 
 	_, err := session.buffer.buff.Write(packet.Payload.Bytes())
 	if err != nil {
-		log.Printf("Error sending packet %v to session %v \n %v ", packet.Header, session.Address(), err)
+		log.Printf("Error sending HabboPacket %v to session %v \n %v ", packet.Header, session.Address(), err)
 	}
 
 	err = session.buffer.buff.Flush()
 	if err != nil {
-		log.Printf("Error sending packet %v to session %v \n %v ", packet.Header, session.Address(), err)
+		log.Printf("Error sending HabboPacket %v to session %v \n %v ", packet.Header, session.Address(), err)
 	}
 
-	if app.HabbGo().Config.Server.Debug {
-		logger.LogOutgoingPacket(session.Address(), packet)
-	}
+	logger.LogOutgoingPacket(session.Address(), packet)
 }
 
-// Send finalizes an outgoing packet with 0x01 and then attempts to write the packet to a Session's buffer.
+// Send finalizes an outgoing HabboPacket with 0x01 and then attempts to write the HabboPacket to a Session's buffer.
 func (session *Session) Queue(packet *packets.OutgoingPacket) {
 	packet.Finish()
 	session.buffer.mux.Lock()
@@ -113,27 +111,25 @@ func (session *Session) Queue(packet *packets.OutgoingPacket) {
 
 	_, err := session.buffer.buff.Write(packet.Payload.Bytes())
 	if err != nil {
-		log.Printf("Error sending packet %v to session %v \n %v ", packet.Header, session.Address(), err)
+		log.Printf("Error sending HabboPacket %v to session %v \n %v ", packet.Header, session.Address(), err)
 	}
 }
 
-// Flush Send finalizes an outgoing packet with 0x01 and then attempts flush the packet to a Sessions's buffer.
+// Flush Send finalizes an outgoing HabboPacket with 0x01 and then attempts flush the HabboPacket to a Sessions's buffer.
 func (session *Session) Flush(packet *packets.OutgoingPacket) {
 	session.buffer.mux.Lock()
 	defer session.buffer.mux.Unlock()
 
 	err := session.buffer.buff.Flush()
 	if err != nil {
-		log.Printf("Error sending packet %v to session %v \n %v ", packet.Header, session.Address(), err)
+		log.Printf("Error sending HabboPacket %v to session %v \n %v ", packet.Header, session.Address(), err)
 	}
 
-	if app.HabbGo().Config.Server.Debug {
-		logger.LogOutgoingPacket(session.Address(), packet)
-	}
+	logger.LogOutgoingPacket(session.Address(), packet)
 }
 
-func (session *Session) GetPacketHandler(headerId int) (func(*player.Player, *packets.IncomingPacket), bool) {
-	return session.router.GetHandler(headerId)
+func (session *Session) GetPacketHandler(headerID player.Packet) (player.Handler, bool) {
+	return session.router.GetPacketHandler(headerID)
 }
 
 func (session *Session) Address() string {

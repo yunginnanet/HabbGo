@@ -1,13 +1,12 @@
 package server
 
 import (
-	"log"
+	"github.com/rs/zerolog/log"
 	"net"
 	"os"
 	"strconv"
 	"sync"
 
-	"github.com/jtieri/HabbGo/habbgo/app"
 )
 
 type Server struct {
@@ -21,9 +20,9 @@ func New() *Server {
 
 // Start will setup the game server, start listening for incoming connections, and handle connections appropriately.
 func (server *Server) Start() {
-	listener, err := net.Listen("tcp", app.HabbGo().Config.Server.Host+":"+strconv.Itoa(app.HabbGo().Config.Server.Port))
+	listener, err := net.Listen("tcp", "127.0.0.1:3001")
 	if err != nil {
-		log.Fatalf("There was an issue starting the game server on port %v.", app.HabbGo().Config.Server.Port) // TODO properly handle errors
+		log.Fatal().Err(err).Msg("failed to listen")
 	}
 	log.Printf("Successfully started the game server at %v", listener.Addr().String())
 	defer listener.Close()
@@ -39,7 +38,7 @@ func (server *Server) Start() {
 
 		// Check that there aren't multiple sessions for a given IP address
 		// TODO kick a session to make room for the new one
-		if server.sessionsFromSameAddr(conn) < app.HabbGo().Config.Server.MaxConns {
+		if server.sessionsFromSameAddr(conn) < 1000 {
 			session := NewSession(conn, server)
 
 			log.Printf("New session created for address: %v", conn.LocalAddr().String())

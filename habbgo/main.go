@@ -6,7 +6,7 @@ import (
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jtieri/HabbGo/habbgo/app"
+
 	"github.com/jtieri/HabbGo/habbgo/config"
 	"github.com/jtieri/HabbGo/habbgo/server"
 )
@@ -32,8 +32,6 @@ func main() {
 	defer db.Close()
 	log.Printf("Successfully connected to database %v at %v:%v ", c.DB.Name, c.DB.Host, c.DB.Port)
 
-	// Create the global App context for accessing Config and DB across the server
-	app.New(c, db)
 
 	log.Println("Starting the game server... ")
 	gameServer := server.New()

@@ -33,8 +33,16 @@ type Session interface {
 	Queue(packet *packets.OutgoingPacket)
 	Flush(packet *packets.OutgoingPacket)
 	Address() string
-	GetPacketHandler(headerId int) (func(*Player, *packets.IncomingPacket), bool)
+	GetPacketHandler(headerID Packet) (Handler, bool)
 	Close()
+}
+
+type Packet interface {
+	Int() int
+}
+
+type Handler interface {
+	Run(*Player, *packets.IncomingPacket)
 }
 
 func New(session Session) *Player {
