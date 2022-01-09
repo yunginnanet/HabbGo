@@ -1,81 +1,176 @@
 package config
 
 import (
-	"io/ioutil"
-	"log"
+	"bytes"
+	"fmt"
+	"io"
 	"os"
+	"runtime"
 
-	"gopkg.in/yaml.v2"
+	"github.com/rs/zerolog"
+	"github.com/spf13/viper"
 )
 
-type Config struct {
-	Server *ServerCfg
-	DB     *DatabaseCfg
+// generic vars
+var (
+	f                  *os.File
+	err                error
+	noColorForce       = false
+	customconfig       = false
+	home               string
+	prefConfigLocation string
+	snek               *viper.Viper
+)
+
+// exported generic vars
+var (
+	// Debug is the value of our debug on/off toggle as per the current configuration.
+	Debug bool
+	// Filename returns the current location of our toml config file.
+	Filename string
+)
+
+func init() {
+	if home, err = os.UserHomeDir(); err != nil {
+		panic(err)
+	}
+	prefConfigLocation = home + "/.config/" + Title
+	snek = viper.New()
 }
 
-type ServerCfg struct {
-	Host     string `yaml:"host"`
-	Port     int    `yaml:"port"`
-	MaxConns int    `yaml:"maxconns"`
-	Debug    bool   `yaml:"debug"`
-}
-
-type DatabaseCfg struct {
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
-	Host     string `yaml:"host"`
-	Port     int16  `yaml:"port"`
-	Name     string `yaml:"name"`
-}
-
-func LoadConfig(file string) *Config {
-	c := &Config{}
-	data, err := ioutil.ReadFile(file)
-
-	if err != nil {
-		log.Println("Failed to read config file 'config.yml'")
-		log.Println("Creating default config file...")
-		c = InitDefaultConfig()
-
-		bz, err := yaml.Marshal(c)
-		if err != nil {
-			log.Fatal("An error occured while writing the default config file...")
+func writeConfig() {
+	if runtime.GOOS == "windows" {
+		newconfig := Title + "-config"
+		snek.SetConfigName(newconfig)
+		if err = snek.MergeInConfig(); err != nil {
+			if err = snek.SafeWriteConfigAs(newconfig + ".toml"); err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
 		}
-
-		err = os.WriteFile(file, bz, 0644)
-		if err != nil {
-			log.Fatal("An error occured while writing the default config file...")
-		}
-
-		log.Println("Successfully created the default config file")
-	} else {
-		err = yaml.Unmarshal(data, &c)
-		if err != nil {
-			log.Fatal("Failed to unmarshal config file 'config.yml', check that its format is correct & try again.", err)
-		}
-
-		log.Println("The file 'config.yml' has been successfully loaded.")
+		return
 	}
 
-	return c
+	if _, err := os.Stat(prefConfigLocation); os.IsNotExist(err) {
+		if err = os.MkdirAll(prefConfigLocation, 0o755); err != nil {
+			println("error writing new config: " + err.Error())
+			os.Exit(1)
+		}
+	}
+
+	newconfig := prefConfigLocation + "/" + "config.toml"
+	if err = snek.SafeWriteConfigAs(newconfig); err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	Filename = newconfig
 }
 
-func InitDefaultConfig() *Config {
-	server := &ServerCfg{
-		Host:     "127.0.0.1",
-		Port:     11235,
-		MaxConns: 2,
-		Debug:    true,
+// LoadConfig will initialize our toml configuration engine and define our default configuration values which can be written to a new configuration file if desired
+func LoadConfig() {
+	snek.SetConfigType("toml")
+	snek.SetConfigName("config")
+
+	argParse()
+
+	if customconfig {
+		associateExportedVariables()
+		return
 	}
-	db := &DatabaseCfg{
-		User:     "root",
-		Password: "password",
-		Host:     "127.0.0.1",
-		Port:     3306,
-		Name:     "habbgo",
+
+	setDefaults()
+
+	for _, loc := range getConfigPaths() {
+		snek.AddConfigPath(loc)
 	}
-	return &Config{
-		Server: server,
-		DB:     db,
+
+	if err = snek.MergeInConfig(); err != nil {
+		writeConfig()
+	}
+
+	if len(Filename) < 1 {
+		Filename = snek.ConfigFileUsed()
+	}
+
+	associateExportedVariables()
+}
+
+func getConfigPaths() (paths []string) {
+	paths = append(paths, "./")
+
+	if runtime.GOOS != "windows" {
+		paths = append(paths,
+			prefConfigLocation, "/etc/"+Title+"/", "../", "../../")
+	}
+
+	return
+}
+
+func loadCustomConfig(path string) {
+	if f, err = os.Open(path); err != nil {
+		println("Error opening specified config file: " + path)
+		panic("config file open fatal error: " + err.Error())
+	}
+	buf, err := io.ReadAll(f)
+	err2 := snek.ReadConfig(bytes.NewBuffer(buf))
+	switch {
+	case err != nil:
+		fmt.Println("config file read fatal error: ", err.Error())
+	case err2 != nil:
+		fmt.Println("config file read fatal error: ", err2.Error())
+	default:
+		break
+	}
+	customconfig = true
+}
+
+func processOpts() {
+	// string options and their exported variables
+	stringOpt := map[string]*string{
+		"http.bind_addr":   &HTTPBind,
+		"http.bind_port":   &HTTPPort,
+		"logger.directory": &logDir,
+		"data.directory":   &DataDirectory,
+		"habbo.bind":       &HabboBind,
+	}
+
+	// string slice options and their exported variables
+	strSliceOpt := map[string]*[]string{}
+
+	// bool options and their exported variables
+	boolOpt := map[string]*bool{
+		"logger.debug":   &Debug,
+		"logger.nocolor": &NoColor,
+	}
+	// integer options and their exported variables
+	intOpt := map[string]*int{
+		"habbo.port":     &HabboPort,
+		"habbo.maxconns": &MaxConns,
+	}
+
+	for key, opt := range stringOpt {
+		*opt = snek.GetString(key)
+	}
+	for key, opt := range strSliceOpt {
+		*opt = snek.GetStringSlice(key)
+	}
+	for key, opt := range boolOpt {
+		*opt = snek.GetBool(key)
+	}
+	for key, opt := range intOpt {
+		*opt = snek.GetInt(key)
+	}
+}
+
+func associateExportedVariables() {
+	processOpts()
+
+	if noColorForce {
+		NoColor = true
+	}
+
+	if Debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 }

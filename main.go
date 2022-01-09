@@ -1,38 +1,31 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
-	"log"
-
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/rs/zerolog"
 
 	"github.com/yunginnanet/habbgo/config"
 	"github.com/yunginnanet/habbgo/server"
 )
 
+var log zerolog.Logger
+
+func init() {
+	config.LoadConfig()
+	log = config.StartLogger()
+}
+
 func main() {
-	log.Println("Booting up HabbGo... ")
+	log.Info().Msg("Booting up BobbaGo...")
+	log.Info().Str("caller", config.Filename).Msg("Loaded config file...")
 
-	log.Println("Loading config file... ")
-	c := config.LoadConfig("config.yml")
+	// TODO: replace with bitcask database
+	//	log.Println("Attempting to make connection with the database... ")
+	//	host := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", c.DB.User, c.DB.Password, c.DB.Host, c.DB.Port, c.DB.Name)
 
-	log.Println("Attempting to make connection with the database... ")
-	host := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v", c.DB.User, c.DB.Password, c.DB.Host, c.DB.Port, c.DB.Name)
 
-	db, err := sql.Open("mysql", host)
-	if err != nil {
-		log.Fatal(err)
-	}
+	log.Info().Str("caller", config.HabboBind).Int("port", config.HabboPort).
+		Msg("Starting the game server... ")
 
-	// Check that the connection to the DB is alive
-	if err = db.Ping(); err != nil {
-		log.Fatalf("Failed to connect to database %v at %v:%v %v", c.DB.Name, c.DB.Host, c.DB.Port, err)
-	}
-	defer db.Close()
-	log.Printf("Successfully connected to database %v at %v:%v ", c.DB.Name, c.DB.Host, c.DB.Port)
-
-	log.Println("Starting the game server... ")
 	gameServer := server.New()
 	gameServer.Start()
 
