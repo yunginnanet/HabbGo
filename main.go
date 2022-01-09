@@ -7,8 +7,8 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
-	"github.com/jtieri/HabbGo/config"
-	"github.com/jtieri/HabbGo/server"
+	"github.com/yunginnanet/habbgo/config"
+	"github.com/yunginnanet/habbgo/server"
 )
 
 func main() {

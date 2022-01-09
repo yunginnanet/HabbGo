@@ -1,4 +1,4 @@
-module github.com/jtieri/HabbGo
+module github.com/yunginnanet/habbgo
 
 go 1.16
 

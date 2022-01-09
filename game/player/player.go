@@ -1,6 +1,6 @@
 package player
 
-import "github.com/jtieri/HabbGo/models"
+import "github.com/yunginnanet/habbgo/models"
 
 type Player struct {
 	session models.Session

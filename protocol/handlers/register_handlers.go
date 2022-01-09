@@ -5,13 +5,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jtieri/HabbGo/crypto"
-	"github.com/jtieri/HabbGo/date"
-	player2 "github.com/jtieri/HabbGo/game/player"
-	"github.com/jtieri/HabbGo/models"
-	composers2 "github.com/jtieri/HabbGo/protocol/composers"
-	"github.com/jtieri/HabbGo/text"
 	"github.com/rs/zerolog/log"
+	"github.com/yunginnanet/habbgo/crypto"
+	"github.com/yunginnanet/habbgo/date"
+	player2 "github.com/yunginnanet/habbgo/game/player"
+	"github.com/yunginnanet/habbgo/models"
+	composers2 "github.com/yunginnanet/habbgo/protocol/composers"
+	"github.com/yunginnanet/habbgo/text"
 )
 
 const (

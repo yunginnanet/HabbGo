@@ -3,7 +3,7 @@ package composers
 import (
 	"strconv"
 
-	"github.com/jtieri/HabbGo/protocol/packets"
+	"github.com/yunginnanet/habbgo/protocol/packets"
 )
 
 const ( // Used in ComposeSessionParams
@@ -31,7 +31,7 @@ func ComposeHello() *packets.OutgoingPacket {
 
 func ComposeCryptoParams() *packets.OutgoingPacket {
 	packet := packets.NewOutgoing(headerID(277)) // Base64 Header DU
-	packet.WriteInt(0)                 // Toggles server->client encryption; 0=off | non-zero=on
+	packet.WriteInt(0)                           // Toggles server->client encryption; 0=off | non-zero=on
 	return packet
 }
 

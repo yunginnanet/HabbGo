@@ -1,6 +1,6 @@
 package player
 
-import "github.com/jtieri/HabbGo/models"
+import "github.com/yunginnanet/habbgo/models"
 
 func Register(username, figure, gender, email, birthday, createdAt, password string, salt []byte) error {
 	//	stmt, err := app.HabbGo().Database.Prepare(

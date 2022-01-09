@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"github.com/jtieri/HabbGo/game/navigator"
-	room2 "github.com/jtieri/HabbGo/game/room"
-	"github.com/jtieri/HabbGo/protocol/composers"
-	"github.com/jtieri/HabbGo/models"
+	"github.com/yunginnanet/habbgo/game/navigator"
+	room2 "github.com/yunginnanet/habbgo/game/room"
+	"github.com/yunginnanet/habbgo/models"
+	"github.com/yunginnanet/habbgo/protocol/composers"
 )
 
 func Navigate(player models.Player, packet models.IncomingPacket) {

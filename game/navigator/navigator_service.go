@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"sync"
 
-	"github.com/jtieri/HabbGo/game/room"
+	"github.com/yunginnanet/habbgo/game/room"
 )
 
 var ns *navService

@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/jtieri/HabbGo/protocol/composers"
-	"github.com/jtieri/HabbGo/models"
+	"github.com/yunginnanet/habbgo/models"
+	"github.com/yunginnanet/habbgo/protocol/composers"
 )
 
 func GetInfo(player models.Player, packet models.IncomingPacket) {

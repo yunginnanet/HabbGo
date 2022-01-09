@@ -9,12 +9,12 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/jtieri/HabbGo/game/player"
-	logger "github.com/jtieri/HabbGo/log"
-	"github.com/jtieri/HabbGo/models"
-	"github.com/jtieri/HabbGo/protocol/composers"
-	"github.com/jtieri/HabbGo/protocol/encoding"
-	packets2 "github.com/jtieri/HabbGo/protocol/packets"
+	"github.com/yunginnanet/habbgo/game/player"
+	logger "github.com/yunginnanet/habbgo/log"
+	"github.com/yunginnanet/habbgo/models"
+	"github.com/yunginnanet/habbgo/protocol/composers"
+	"github.com/yunginnanet/habbgo/protocol/encoding"
+	packets2 "github.com/yunginnanet/habbgo/protocol/packets"
 )
 
 type Session struct {

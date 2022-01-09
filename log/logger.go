@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/jtieri/HabbGo/models"
+	"github.com/yunginnanet/habbgo/models"
 )
 
 func LogOutgoingPacket(playerAddr string, p models.OutgoingPacket) {

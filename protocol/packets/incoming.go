@@ -3,7 +3,7 @@ package packets
 import (
 	"bytes"
 
-	encoding2 "github.com/jtieri/HabbGo/protocol/encoding"
+	encoding2 "github.com/yunginnanet/habbgo/protocol/encoding"
 )
 
 // IncomingPacket represents a client->server packet.
@@ -38,9 +38,9 @@ func (pid PacketID) Int() int {
 // NewIncoming returns a pointer to a newly allocated IncomingPacket struct with its appropriate header information.
 func NewIncoming(rawHeader []byte, payload *bytes.Buffer) *IncomingPacket {
 	return &IncomingPacket{
-		header: string(rawHeader),
+		header:   string(rawHeader),
 		headerID: PacketID(encoding2.DecodeB64(rawHeader)),
-		payload: payload,
+		payload:  payload,
 	}
 }
 

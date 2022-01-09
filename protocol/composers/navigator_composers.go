@@ -4,10 +4,10 @@ import (
 	"strconv"
 	"strings"
 
-	navigator2 "github.com/jtieri/HabbGo/game/navigator"
-	room2 "github.com/jtieri/HabbGo/game/room"
-	"github.com/jtieri/HabbGo/models"
-	"github.com/jtieri/HabbGo/protocol/packets"
+	navigator2 "github.com/yunginnanet/habbgo/game/navigator"
+	room2 "github.com/yunginnanet/habbgo/game/room"
+	"github.com/yunginnanet/habbgo/models"
+	"github.com/yunginnanet/habbgo/protocol/packets"
 )
 
 func ComposeNavNodeInfo(player models.Player, cat *navigator2.Category, nodeMask bool, subcats []*navigator2.Category,

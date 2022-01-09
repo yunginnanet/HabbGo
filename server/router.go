@@ -3,8 +3,8 @@ package server
 import (
 	"sync"
 
-	"github.com/jtieri/HabbGo/models"
-	"github.com/jtieri/HabbGo/protocol/handlers"
+	"github.com/yunginnanet/habbgo/models"
+	"github.com/yunginnanet/habbgo/protocol/handlers"
 )
 
 type HabboHandler func(p models.Player, pi models.IncomingPacket)

@@ -1,7 +1,7 @@
 package composers
 
 import (
-	"github.com/jtieri/HabbGo/protocol/packets"
+	"github.com/yunginnanet/habbgo/protocol/packets"
 )
 
 func DATE(date string) *packets.OutgoingPacket {

@@ -3,8 +3,8 @@ package composers
 import (
 	"strconv"
 
-	"github.com/jtieri/HabbGo/models"
-	"github.com/jtieri/HabbGo/protocol/packets"
+	"github.com/yunginnanet/habbgo/models"
+	"github.com/yunginnanet/habbgo/protocol/packets"
 )
 
 func ComposeUserObj(p models.Player) models.OutgoingPacket {
@@ -35,7 +35,7 @@ func ComposeAvailableBadges(p models.Player) models.OutgoingPacket {
 	packet.WriteInt(len(p.Details().Badges()))
 
 	var bSlot int
-	for i, b := range p.Details().Badges(){
+	for i, b := range p.Details().Badges() {
 		packet.WriteString(b)
 
 		if b == p.Details().CurrentBadge() {

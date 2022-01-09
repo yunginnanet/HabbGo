@@ -1,8 +1,8 @@
 package server
 
 import (
-	logger "github.com/jtieri/HabbGo/log"
-	"github.com/jtieri/HabbGo/models"
+	logger "github.com/yunginnanet/habbgo/log"
+	"github.com/yunginnanet/habbgo/models"
 )
 
 func Handle(p models.Player, packet models.IncomingPacket) {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/jtieri/HabbGo/models"
+	"github.com/yunginnanet/habbgo/models"
 )
 
 func Login(player models.Player) {

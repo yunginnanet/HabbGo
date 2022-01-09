@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	player2 "github.com/jtieri/HabbGo/game/player"
-	"github.com/jtieri/HabbGo/models"
-	"github.com/jtieri/HabbGo/protocol/composers"
+	player2 "github.com/yunginnanet/habbgo/game/player"
+	"github.com/yunginnanet/habbgo/models"
+	"github.com/yunginnanet/habbgo/protocol/composers"
 )
 
 func InitCrypto(player models.Player, packet models.IncomingPacket) {

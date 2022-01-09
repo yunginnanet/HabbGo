@@ -3,8 +3,8 @@ package packets
 import (
 	"bytes"
 
-	"github.com/jtieri/HabbGo/models"
-	encoding2 "github.com/jtieri/HabbGo/protocol/encoding"
+	"github.com/yunginnanet/habbgo/models"
+	encoding2 "github.com/yunginnanet/habbgo/protocol/encoding"
 )
 
 // OutgoingPacket represents a server->client packet.
