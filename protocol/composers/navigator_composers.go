@@ -5,13 +5,20 @@ import (
 	"strings"
 
 	navigator2 "github.com/yunginnanet/habbgo/game/navigator"
-	room2 "github.com/yunginnanet/habbgo/game/room"
+	"github.com/yunginnanet/habbgo/game/room"
 	"github.com/yunginnanet/habbgo/models"
 	"github.com/yunginnanet/habbgo/protocol/packets"
 )
 
-func ComposeNavNodeInfo(player models.Player, cat *navigator2.Category, nodeMask bool, subcats []*navigator2.Category,
-	rooms []*room2.Room, currentVisitors int, maxVisitors int) *packets.OutgoingPacket {
+func ComposeNavNodeInfo(
+	player models.Player,
+	cat *navigator2.Category,
+	nodeMask bool,
+	subcats []*navigator2.Category,
+	rooms []*room.Room,
+	currentVisitors, maxVisitors int,
+) *packets.OutgoingPacket {
+
 	p := packets.NewOutgoing(headerID(220)) // Base64 Header C\
 
 	p.WriteBool(nodeMask) // hideCategory
@@ -43,18 +50,18 @@ func ComposeNavNodeInfo(player models.Player, cat *navigator2.Category, nodeMask
 				door, _ = strconv.Atoi(data[1])
 			}
 
-			p.WriteInt(r.Details.Id + room2.PublicRoomOffset) // writeInt roomId
-			p.WriteInt(1)                                     // writeInt 1
-			p.WriteString(r.Details.Name)                     // writeString roomName
-			p.WriteInt(r.Details.CurrentVisitors)             // writeInt currentVisitors
-			p.WriteInt(r.Details.MaxVisitors)                 // writeInt maxVisitors
-			p.WriteInt(r.Details.CatId)                       // writeInt catId
-			p.WriteString(desc)                               // writeString roomDesc
-			p.WriteInt(r.Details.Id)                          // writeInt roomId
-			p.WriteInt(door)                                  // writeInt door
-			p.WriteString(r.Details.CCTs)                     // writeString roomCCTs
-			p.WriteInt(0)                                     // writeInt 0
-			p.WriteInt(1)                                     // writeInt 1
+			p.WriteInt(r.Details.Id + room.PublicRoomOffset) // writeInt roomId
+			p.WriteInt(1)                                    // writeInt 1
+			p.WriteString(r.Details.Name)                    // writeString roomName
+			p.WriteInt(r.Details.CurrentVisitors)            // writeInt currentVisitors
+			p.WriteInt(r.Details.MaxVisitors)                // writeInt maxVisitors
+			p.WriteInt(r.Details.CatId)                      // writeInt catId
+			p.WriteString(desc)                              // writeString roomDesc
+			p.WriteInt(r.Details.Id)                         // writeInt roomId
+			p.WriteInt(door)                                 // writeInt door
+			p.WriteString(r.Details.CCTs)                    // writeString roomCCTs
+			p.WriteInt(0)                                    // writeInt 0
+			p.WriteInt(1)                                    // writeInt 1
 		} else {
 			p.WriteInt(r.Details.Id)
 			p.WriteString(r.Details.Name)
@@ -66,7 +73,7 @@ func ComposeNavNodeInfo(player models.Player, cat *navigator2.Category, nodeMask
 				p.WriteString("-")
 			}
 
-			p.WriteString(room2.AccessType(r.Details.AccessType))
+			p.WriteString(room.AccessType(r.Details.AccessType))
 			p.WriteInt(r.Details.CurrentVisitors)
 			p.WriteInt(r.Details.MaxVisitors)
 			p.WriteString(r.Details.Desc)
